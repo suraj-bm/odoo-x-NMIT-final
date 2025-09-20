@@ -52,7 +52,7 @@ const ContactsPage = () => {
     return (
         <div className="flex h-screen bg-gray-100 font-sans">
             {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md flex flex-col">
+            {/* <aside className="w-64 bg-white shadow-md flex flex-col">
                 <div className="p-6 text-2xl font-bold text-gray-800 border-b">
                     Shiv Accounts
                 </div>
@@ -90,7 +90,7 @@ const ContactsPage = () => {
                         Reports
                     </Link>
                 </nav>
-            </aside>
+            </aside> */}
 
             {/* Main content */}
             <main className="flex-1 p-8 overflow-y-auto">
