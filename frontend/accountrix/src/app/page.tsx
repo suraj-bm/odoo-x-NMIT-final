@@ -1,8 +1,11 @@
 'use client';
 
 import React from 'react';
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const Home = () => {
+    const { data: session, status } = useSession();
+
     // Helper component for feature cards
     const Feature = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
         <div className="bg-white p-6 rounded-lg shadow-sm text-center">
@@ -19,15 +22,41 @@ const Home = () => {
             {/* Header */}
             <header className="bg-white shadow-sm sticky top-0 z-50">
                 <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-800"></h1>
-                    <nav className="hidden md:flex space-x-8">
-                        
-                    </nav>
+                    <h1 className="text-2xl font-bold text-gray-800">Accountix</h1>
+                    
+                    {/* Right Side Navigation */}
                     <div>
-                        <a href="/dashboard" className="text-gray-600 hover:text-indigo-600 mr-4">Login</a>
-                        <a href="#" className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
-                            Sign Up
-                        </a>
+                        {status === "authenticated" ? (
+                            <div className="flex items-center space-x-4">
+                                <img
+                                    src={session.user?.image || "https://i.pravatar.cc/150?u=default"}
+                                    alt="User Avatar"
+                                    className="w-10 h-10 rounded-full"
+                                />
+                                <span className="text-gray-700">{session.user?.name}</span>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Sign Out
+                                </button>
+                            </div>
+                        ) : (
+                            <div>
+                                <button
+                                    onClick={() => signIn("google")}
+                                    className="text-gray-600 hover:text-indigo-600 mr-4"
+                                >
+                                    Login
+                                </button>
+                                <a
+                                    href="#"
+                                    className="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                                >
+                                    Sign Up
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -42,7 +71,10 @@ const Home = () => {
                         <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
                             Accountix helps you manage your finances effortlessly with intuitive tools for invoicing, expense tracking, and real-time reporting.
                         </p>
-                        <a href="#" className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors text-lg">
+                        <a
+                            href="#"
+                            className="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors text-lg"
+                        >
                             Get Started for Free
                         </a>
                     </div>
@@ -57,17 +89,17 @@ const Home = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <Feature
-                                icon={<svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>}
+                                icon={<svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>}
                                 title="Easy Invoicing"
                                 description="Create and send professional invoices in minutes. Track payments and send reminders automatically."
                             />
                             <Feature
-                                icon={<svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+                                icon={<svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
                                 title="Real-Time Reports"
                                 description="Generate balance sheets, profit & loss statements, and inventory reports with a single click."
                             />
                             <Feature
-                                icon={<svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>}
+                                icon={<svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>}
                                 title="Manage Purchases"
                                 description="Easily create purchase orders, convert them to bills, and track your payables."
                             />
@@ -75,17 +107,19 @@ const Home = () => {
                     </div>
                 </section>
                 
-                 {/* CTA Section */}
+                {/* CTA Section */}
                 <section className="bg-indigo-600 text-white">
                     <div className="container mx-auto px-6 py-16 text-center">
                         <h2 className="text-3xl font-bold mb-3">Ready to Take Control of Your Finances?</h2>
                         <p className="max-w-xl mx-auto mb-6">Join hundreds of businesses simplifying their accounting with Accountix.</p>
-                         <a href="#" className="bg-white text-indigo-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors text-lg">
+                        <a
+                            href="#"
+                            className="bg-white text-indigo-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors text-lg"
+                        >
                             Start Your Free Trial
                         </a>
                     </div>
                 </section>
-
             </main>
 
             {/* Footer */}
