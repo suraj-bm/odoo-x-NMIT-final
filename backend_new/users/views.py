@@ -67,3 +67,57 @@ def user_profile(request):
     """
     serializer = UserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def users_by_role(request, role):
+    """
+    Get users by role
+    """
+    try:
+        users = User.objects.filter(role=role)
+        serializer = UserSerializer(users, many=True)
+        return Response({
+            'role': role,
+            'count': users.count(),
+            'users': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def users_by_type(request, user_type):
+    """
+    Get users by user_type
+    """
+    try:
+        users = User.objects.filter(user_type=user_type)
+        serializer = UserSerializer(users, many=True)
+        return Response({
+            'user_type': user_type,
+            'count': users.count(),
+            'users': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_roles_info(request):
+    """
+    Get information about available roles and user types
+    """
+    return Response({
+        'roles': [{'value': choice[0], 'label': choice[1]} for choice in User.ROLE_CHOICES],
+        'user_types': [{'value': choice[0], 'label': choice[1]} for choice in User.USER_TYPE_CHOICES],
+        'current_user': {
+            'username': request.user.username,
+            'role': request.user.role,
+            'user_type': request.user.user_type,
+            'is_admin': request.user.is_admin,
+            'is_buyer': request.user.is_buyer,
+            'is_seller': request.user.is_seller,
+            'is_accountant': request.user.is_accountant,
+        }
+    }, status=status.HTTP_200_OK)

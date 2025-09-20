@@ -9,7 +9,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'role', 'password', 'password_confirm')
+        fields = ('username', 'email', 'first_name', 'last_name', 'role', 'user_type', 'password', 'password_confirm')
         extra_kwargs = {
             'password': {'write_only': True},
             'password_confirm': {'write_only': True},
@@ -45,7 +45,17 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Must include username and password.')
 
 class UserSerializer(serializers.ModelSerializer):
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+    user_type_display = serializers.CharField(source='get_user_type_display', read_only=True)
+    
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_active', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = (
+            'id', 'username', 'email', 'first_name', 'last_name', 
+            'role', 'role_display', 'user_type', 'user_type_display',
+            'phone', 'address', 'city', 'state', 'postal_code',
+            'business_name', 'business_type', 'is_verified',
+            'is_active', 'is_staff', 'is_superuser',
+            'created_at', 'updated_at'
+        )
+        read_only_fields = ('id', 'created_at', 'updated_at', 'is_staff', 'is_superuser')
