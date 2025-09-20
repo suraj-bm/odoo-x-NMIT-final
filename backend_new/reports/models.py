@@ -13,6 +13,7 @@ class SalesReport(models.Model):
     net_profit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     top_selling_category = models.CharField(max_length=100, blank=True)
     top_selling_product = models.CharField(max_length=200, blank=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -24,6 +25,7 @@ class ProductAnalytics(models.Model):
     total_sales = models.IntegerField(default=0)
     total_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=True)
     last_updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
