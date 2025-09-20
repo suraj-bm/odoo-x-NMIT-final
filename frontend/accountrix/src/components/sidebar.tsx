@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
   return (
     <aside className="w-64 bg-white shadow-sm flex flex-col h-full">
       <div className="p-6 text-2xl font-bold text-gray-800 border-b">
-        Shiv Accounts
+        Accountix
       </div>
       <nav className="flex-1 px-4 py-6 space-y-4">
         {/* Main Section */}

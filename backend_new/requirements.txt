@@ -1,3 +1,5 @@
 Django==4.2.7
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.0
+#run this if setup tools are not present pip install --upgrade setuptools
+pillow==11.3.0
