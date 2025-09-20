@@ -108,6 +108,7 @@ class SellerProfile(models.Model):
     bank_details = models.JSONField(default=dict, blank=True)
     commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=10.0)
     is_verified = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -120,6 +121,7 @@ class SellerProduct(models.Model):
     selling_price = models.DecimalField(max_digits=12, decimal_places=2)
     commission_amount = models.DecimalField(max_digits=12, decimal_places=2)
     is_approved = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_products')
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -139,6 +141,7 @@ class SellerInvoice(models.Model):
     commission_amount = models.DecimalField(max_digits=12, decimal_places=2)
     net_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('paid', 'Paid')], default='pending')
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):
@@ -205,6 +208,7 @@ class Company(models.Model):
     email = models.EmailField()
     tax_id = models.CharField(max_length=50, unique=True)
     logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
