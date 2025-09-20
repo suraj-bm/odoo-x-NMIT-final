@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.db import transaction
 from .models import (
@@ -8,12 +8,12 @@ from .models import (
     SalesOrder, SalesOrderLineItem,
     VendorBill, VendorBillLineItem,
     CustomerInvoice, CustomerInvoiceLineItem,
-    StockMovement
+    StockMovement, Cart, Order, OrderItem
 )
 from .serializers import (
     PurchaseOrderSerializer, SalesOrderSerializer,
     VendorBillSerializer, CustomerInvoiceSerializer,
-    StockMovementSerializer
+    StockMovementSerializer, CartSerializer, OrderSerializer, OrderItemSerializer
 )
 
 # Purchase Order Views
@@ -216,3 +216,104 @@ def convert_so_to_invoice(request, so_id):
         
     except SalesOrder.DoesNotExist:
         return Response({'error': 'Sales Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+# Cart Views
+class CartListCreateView(generics.ListCreateAPIView):
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class CartRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
+# Order Views
+class OrderListCreateView(generics.ListCreateAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class OrderRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+# Checkout Process
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def checkout(request):
+    """
+    Process checkout from cart to order
+    """
+    try:
+        cart_items = Cart.objects.filter(user=request.user)
+        if not cart_items.exists():
+            return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        with transaction.atomic():
+            # Create order
+            order = Order.objects.create(
+                user=request.user,
+                shipping_address=request.data.get('shipping_address', ''),
+                payment_method=request.data.get('payment_method', 'cash_on_delivery'),
+                notes=request.data.get('notes', '')
+            )
+            
+            subtotal = 0
+            # Create order items from cart
+            for cart_item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    unit_price=cart_item.product.unit_price
+                )
+                subtotal += cart_item.total_price
+            
+            # Calculate totals
+            order.subtotal = subtotal
+            order.tax_amount = subtotal * 0.18  # 18% GST
+            order.delivery_charge = 50.0  # Fixed delivery charge
+            order.total_amount = order.subtotal + order.tax_amount + order.delivery_charge
+            order.save()
+            
+            # Clear cart
+            cart_items.delete()
+            
+            # Update stock
+            for cart_item in cart_items:
+                cart_item.product.stock_quantity -= cart_item.quantity
+                cart_item.product.save()
+                
+                # Create stock movement
+                StockMovement.objects.create(
+                    company=cart_item.product.company,
+                    product=cart_item.product,
+                    movement_type='out',
+                    quantity=cart_item.quantity,
+                    reference_type='order',
+                    reference_id=order.id,
+                    notes=f'Stock out from Order {order.order_number}',
+                    created_by=request.user
+                )
+        
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

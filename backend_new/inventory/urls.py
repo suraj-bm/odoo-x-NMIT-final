@@ -22,4 +22,11 @@ urlpatterns = [
     
     # Stock Movement URLs
     path('stock-movements/', views.StockMovementListCreateView.as_view(), name='stock-movement-list-create'),
+    
+    # E-commerce URLs
+    path('cart/', views.CartListCreateView.as_view(), name='cart-list-create'),
+    path('cart/<int:pk>/', views.CartRetrieveUpdateDestroyView.as_view(), name='cart-detail'),
+    path('orders/', views.OrderListCreateView.as_view(), name='order-list-create'),
+    path('orders/<int:pk>/', views.OrderRetrieveUpdateDestroyView.as_view(), name='order-detail'),
+    path('checkout/', views.checkout, name='checkout'),
 ]

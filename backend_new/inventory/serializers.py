@@ -4,7 +4,7 @@ from .models import (
     SalesOrder, SalesOrderLineItem,
     VendorBill, VendorBillLineItem,
     CustomerInvoice, CustomerInvoiceLineItem,
-    StockMovement
+    StockMovement, Cart, Order, OrderItem
 )
 from masters.serializers import ContactSerializer, ProductSerializer
 
@@ -94,3 +94,41 @@ class StockMovementSerializer(serializers.ModelSerializer):
         model = StockMovement
         fields = '__all__'
         read_only_fields = ('created_at',)
+
+class CartSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_price = serializers.DecimalField(source='product.unit_price', max_digits=12, decimal_places=2, read_only=True)
+    product_image = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Cart
+        fields = '__all__'
+        read_only_fields = ('created_at', 'updated_at')
+    
+    def get_product_image(self, obj):
+        primary_image = obj.product.images.filter(is_primary=True).first()
+        if primary_image:
+            return primary_image.image.url
+        return None
+    
+    def get_total_price(self, obj):
+        return obj.total_price
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_sku = serializers.CharField(source='product.sku', read_only=True)
+    
+    class Meta:
+        model = OrderItem
+        fields = '__all__'
+        read_only_fields = ('created_at',)
+
+class OrderSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    items = OrderItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Order
+        fields = '__all__'
+        read_only_fields = ('created_at', 'updated_at', 'order_number')

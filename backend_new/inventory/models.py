@@ -4,6 +4,82 @@ from masters.models import Company, Contact, Product, Tax
 
 User = get_user_model()
 
+class Cart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'product']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name} (x{self.quantity})"
+    
+    @property
+    def total_price(self):
+        return self.quantity * self.product.unit_price
+
+class Order(models.Model):
+    ORDER_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    order_number = models.CharField(max_length=50, unique=True)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    delivery_charge = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    shipping_address = models.TextField()
+    payment_method = models.CharField(max_length=50, default='cash_on_delivery')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Order {self.order_number} - {self.user.username}"
+    
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            # Generate order number
+            last_order = Order.objects.order_by('-id').first()
+            if last_order:
+                last_number = int(last_order.order_number.split('-')[-1])
+                self.order_number = f"ORD-{last_number + 1:06d}"
+            else:
+                self.order_number = "ORD-000001"
+        super().save(*args, **kwargs)
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        self.total_price = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.quantity} x {self.unit_price}"
+
 class PurchaseOrder(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
