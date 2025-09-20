@@ -9,4 +9,6 @@ urlpatterns = [
     path('roles/', views.user_roles_info, name='user_roles_info'),
     path('by-role/<str:role>/', views.users_by_role, name='users_by_role'),
     path('by-type/<str:user_type>/', views.users_by_type, name='users_by_type'),
+    path('check-username/', views.check_username, name='check_username'),
+
 ]

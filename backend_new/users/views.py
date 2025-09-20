@@ -43,6 +43,8 @@ def login(request):
                 'access': str(refresh.access_token),
             }
         }, status=status.HTTP_200_OK)
+    else:
+        print("DEBUG ERRORS:", serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -58,7 +60,15 @@ def logout_view(request):
         return Response({'message': 'Successfully logged out.'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
-
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_username(request):
+    username = request.query_params.get('username', '')
+    if not username:
+        return Response({'available': False, 'error': 'No username provided'})
+    
+    exists = User.objects.filter(username=username).exists()
+    return Response({'available': not exists})
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
